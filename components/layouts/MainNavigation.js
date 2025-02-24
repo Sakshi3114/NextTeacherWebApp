@@ -6,7 +6,9 @@ function MainNavigation() {
   return (
     <header className={classes.header}>
       <div className={classes.logo}>
+        <Link href= '/'>
         <NotebookPen className={classes.icon} />
+        </Link>
         Teacher Schedule Check 
         </div>
       <nav>

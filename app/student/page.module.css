@@ -1,0 +1,16 @@
+.div{
+    width: 50%;
+    margin: auto;
+}
+.notFound{
+    color: red;
+    display: flex;
+    justify-content: center;
+    margin-top: 4rem;
+    font-size: 2rem;
+}
+.icon{
+    size: 5rem;
+    margin-top: 0.7rem;
+    margin-right: 2rem;
+}

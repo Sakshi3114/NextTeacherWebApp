@@ -1,0 +1,102 @@
+.container {
+    min-height: 100vh;
+    width: 100%;
+    padding: 2rem;
+    background: linear-gradient(to bottom, #68011b, #76021f);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  
+  .header {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+  }
+  
+  .card {
+    background: rgba(255, 240, 245, 0.95) !important;
+    border-radius: 0.75rem !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .cardHeader {
+    padding: 1.5rem 1rem !important;
+    border-bottom: 1px solid rgba(128, 0, 32, 0.1) !important;
+  }
+  
+  .cardContent {
+    padding: 1.5rem 1rem !important;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .cardFooter {
+    padding: 1.25rem 1rem !important;
+    border-top: 1px solid rgba(128, 0, 32, 0.1) !important;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 1200px) {
+    .grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      padding: 0 1rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr;
+      padding: 0 0.5rem;
+    }
+  
+    .container {
+      padding: 1rem;
+    }
+  
+    .title {
+      font-size: 2rem;
+    }
+  }
+
+  .button {
+    width: 100%;
+    height: 30px;
+    font-size: 1rem;
+    background: linear-gradient(to right, #800020 50%, #d8a7b3 50%);
+    background-size: 200% 100%;
+    background-position: right; /* Start from the right */
+    border: none;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: background-position 0.4s ease-in-out, color 0.4s ease-in-out;
+}
+
+.button:hover {
+    background-position: left; /* Move to the left */
+    color: white;
+}
+
+

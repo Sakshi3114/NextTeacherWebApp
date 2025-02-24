@@ -11,7 +11,7 @@ function AddNew(){
     async function addNewRecord(enteredData) {
         console.log(enteredData);
 
-        const response = await fetch("http://localhost:3000/api/records",{
+        const response = await fetch("/api/records",{
             method: "POST",
             body: JSON.stringify(enteredData), 
             headers: { 

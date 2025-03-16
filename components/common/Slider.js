@@ -24,7 +24,7 @@ export default function ImageSlider() {
 
   // Auto-slide every 3 seconds
   useEffect(() => {
-    const interval = setInterval(nextSlide, 8000);
+    const interval = setInterval(nextSlide, 3000);
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 

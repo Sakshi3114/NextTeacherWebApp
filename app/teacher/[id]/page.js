@@ -35,7 +35,7 @@ function TeacherDetails() {
             if (!response.ok) throw new Error("Failed to delete record");
 
             alert("Teacher record deleted successfully!");
-            router.push("/retrieveall");
+            router.push("/admin/retrieveall");
         } catch (error) {
             console.error("Error:", error);
         }

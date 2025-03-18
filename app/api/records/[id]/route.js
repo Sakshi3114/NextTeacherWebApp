@@ -34,6 +34,7 @@ export async function DELETE(req, { params }) {
     }
 }
 
+//Edit Teachers Details
 export async function PUT(req, { params }) {
     await dbConnect();
     try {

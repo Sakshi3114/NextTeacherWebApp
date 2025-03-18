@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
+import styles from './form.module.css'
 
 function CommonForm({formControls,onAddData, initialValues}) {
     const inputRefs = useRef({});
@@ -47,7 +48,7 @@ function CommonForm({formControls,onAddData, initialValues}) {
                         </div>)
                 }
             </div>
-            <Button type = "submit" className= 'mt-2 w-full'>{'Submit'}</Button>
+            <Button type = "submit" className={styles.btn}>{'Submit'}</Button>
         </form>
     );
 }

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import styles from './page.module.css';
 
 function TeacherDetails() {
     const { id } = useParams(); // Get dynamic ID
@@ -45,7 +46,8 @@ function TeacherDetails() {
     if (!teacher) return <p>Teacher not found.</p>;
 
     return (
-        <div className="p-6">
+        <div className={styles.container}>
+            <div className = {styles.card}>
             <h1 className="text-2xl font-bold mb-4">{teacher.name}</h1>
             <p><strong>Number:</strong> {teacher.number}</p>
             <p><strong>Email:</strong> {teacher.email}</p>
@@ -59,6 +61,8 @@ function TeacherDetails() {
                     Delete
                 </button>
             </div>
+            </div>
+            
         </div>
     );
 }

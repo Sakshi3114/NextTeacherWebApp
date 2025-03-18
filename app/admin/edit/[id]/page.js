@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import CommonForm from "@/components/common/form";
 import { formControls } from "@/util";
+import styles from './page.module.css';
 
 function EditRecord() {
     const { id } = useParams(); // Get dynamic ID from URL
@@ -48,12 +49,14 @@ function EditRecord() {
 
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Edit Teacher Record</h1>
+            <h1 className="text-2xl font-bold mb-4 text-center">Edit Teacher Record</h1>
+            <div className={styles.container}>
             <CommonForm
                 formControls={formControls}
                 onAddData={handleUpdate}
                 initialValues={teacher} // Prefill form
             />
+            </div>   
         </div>
     );
 }

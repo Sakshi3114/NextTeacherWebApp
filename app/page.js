@@ -8,9 +8,9 @@ export default function Home() {
         <div className="mt-6 px-6 w-full text-center">
         <h2 className="text-2xl font-semibold text-gray-800">Welcome to Teacher Schedule Check!</h2>
         <p className="text-gray-600 mt-2">
-          This platform allows **teachers and students** to easily check and manage their schedules.
+          This platform allows <b>teachers and students</b> to easily check and manage their schedules.
           <br/>
-          Navigate to the **Admin Panel** to update schedules or visit the **Student Panel** to check teacher schedule.
+          Navigate to the <b>Admin Panel</b> to update schedules or visit the <b>Student Panel</b> to check teacher schedule.
         </p>
       </div>
       </div>

@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 const images = [
-  "/banner1.jpeg",
-  "/banner2.jpg",
-  "/banner3.jpeg",
+  "/Banner1.webp",
+  "/Banner2.webp",
+  "/banner3.jpg",
 ];
 
 export default function ImageSlider() {
@@ -37,7 +37,7 @@ export default function ImageSlider() {
           alt={`Slide ${currentIndex + 1}`}
           layout="fill"
           objectFit="cover"
-          className="transition-opacity duration-500 ease-in-out"
+          className="transition-opacity duration-500 ease-in-out object-cover"
         />
       </div>
 

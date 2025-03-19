@@ -7,7 +7,7 @@ function Table({teachers}){
     return(
         <Fragment>
             {teachers.length > 0 && (
-                <div className="m-6 ">
+                <div className="m-6 overflow-x-auto">
                     <h2 className="text-xl font-semibold mb-2">Search Results:</h2>
                     <table className="w-full border-collapse border border-gray-300">
                         <thead>

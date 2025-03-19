@@ -1,7 +1,9 @@
 "use client";
 import { Fragment } from "react";
+import { useRouter } from "next/navigation";
 
 function Table({teachers}){
+    const router = useRouter();
     return(
         <Fragment>
             {teachers.length > 0 && (
@@ -20,6 +22,7 @@ function Table({teachers}){
                                 <th className="border border-gray-300 p-2">Lecture 6</th>
                                 <th className="border border-gray-300 p-2">Lecture 7</th>
                                 <th className="border border-gray-300 p-2">Lecture 8</th>
+                                <th className="border border-gray-300 p-2">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -35,6 +38,14 @@ function Table({teachers}){
                                     <td className="border border-gray-300 p-2">{teacher.lecture6}</td>
                                     <td className="border border-gray-300 p-2">{teacher.lecture7}</td>
                                     <td className="border border-gray-300 p-2">{teacher.lecture8}</td>
+                                    <td className="border border-gray-300 p-2">
+                                <button
+                                    onClick={() => router.push(`/student/${teacher._id}`)}
+                                    className="bg-blue-500 text-white px-3 py-1 rounded"
+                                >
+                                    View
+                                </button>
+                            </td>
                                 </tr>
                             ))}
                         </tbody>

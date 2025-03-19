@@ -14,7 +14,7 @@ function MainNavigation() {
       <nav>
         <ul>
           <li>
-            <Link href='/admin'>Admin Panel</Link>
+            <Link href='/login'>Admin Panel</Link>
           </li>
           <li>
             <Link href='/student'>Student Panel</Link>

@@ -1,0 +1,37 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh; /* Adjust height to fit the screen */
+    background:#f8f0f08a ; /* Light background to match theme */
+}
+
+.card {
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    width: 400px; /* Adjust as needed */
+    height: 40%;
+    text-align: center;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    /* border: 2px solid #e63950; Matching theme color */
+    background: #f8f9fa;
+}
+
+.card h2 {
+    margin-bottom: 10px;
+    color: #d63031; /* Theme matching color */
+}
+
+.card p {
+    margin: 5px 0;
+    font-size: 16px;
+}
+
+.card strong {
+    color: #333;
+}

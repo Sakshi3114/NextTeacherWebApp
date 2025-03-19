@@ -4,12 +4,18 @@ import { Fragment, useState } from "react";
 import { searchControls } from "@/util";
 import classes from './page.module.css';
 import { Frown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function RetrieveRecord() {
     const [teachers, setTeachers] = useState([]);
     const [noResults, setNoResults] = useState(false);
+    const router = useRouter();
 
     async function searchTeacher(formData) {
+        if (!formData.name && !formData.department) {
+            alert("Please enter either a Name or Department to search.");
+            return;
+        }
         try {
             setTeachers([]); 
             setNoResults(false);
@@ -70,6 +76,7 @@ function RetrieveRecord() {
                                 <th className="border border-gray-300 p-2">Lecture 6</th>
                                 <th className="border border-gray-300 p-2">Lecture 7</th>
                                 <th className="border border-gray-300 p-2">Lecture 8</th>
+                                <th className="border border-gray-300 p-2">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,7 +92,16 @@ function RetrieveRecord() {
                                     <td className="border border-gray-300 p-2">{teacher.lecture6}</td>
                                     <td className="border border-gray-300 p-2">{teacher.lecture7}</td>
                                     <td className="border border-gray-300 p-2">{teacher.lecture8}</td>
+                                    <td className="border border-gray-300 p-2">
+                                        <button
+                                        onClick={() => router.push(`/teacher/${teacher._id}`)}
+                                        className="bg-blue-500 text-white px-3 py-1 rounded"
+                                    >
+                                        View
+                                        </button>
+                                    </td>
                                 </tr>
+                                
                             ))}
                         </tbody>
                     </table>

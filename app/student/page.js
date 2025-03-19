@@ -11,6 +11,10 @@ function StudentPanel() {
     const [noResults, setNoResults] = useState(false);
 
     async function searchTeacher(formData) {
+        if (!formData.name && !formData.department) {
+            alert("Please enter either a Name or Department to search.");
+            return;
+        }
         try {
             setTeachers([]); 
             setNoResults(false);

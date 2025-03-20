@@ -19,6 +19,12 @@ function MainNavigation() {
           <li>
             <Link href='/student'>Student Panel</Link>
           </li>
+          <li>
+            <Link href='/admin/auth-forms'>Teacher Panel</Link>
+          </li>
+          <li>
+            <Link href='/notices'>Check Notice</Link>
+          </li>
         </ul>
       </nav>
     </header>

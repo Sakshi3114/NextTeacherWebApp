@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 
 export async function GET(req, { params }) {
-  const { teacherId } = params;
+  const { teacherId } = await params;
 
   if (!mongoose.Types.ObjectId.isValid(teacherId)) {
     return NextResponse.json({ error: "Invalid teacherId" }, { status: 400 });

@@ -41,9 +41,9 @@ function RetrieveRecord() {
         }
     }
 
-    return (
-        <Fragment>
-            <h1 className="text-2xl font-bold mb-4 text-center mt-4">Retrieve Record</h1>
+return (
+    <Fragment>
+        <h1 className="text-2xl font-bold mb-4 text-center mt-4">Retrieve Record</h1>
             <div className={classes.div}>
                 <CommonForm 
                     formControls={searchControls} 
@@ -51,7 +51,7 @@ function RetrieveRecord() {
                 />
             </div>
 
-            {/* Show "No teacher found" if no results */}
+        {/* Show "No teacher found" if no results */}
             {noResults && (
                 <div className={classes.notFound}>
                     <Frown className={classes.icon}/>
@@ -59,24 +59,24 @@ function RetrieveRecord() {
                 </div>
             )}
 
-            {/* Display results */}
+        {/* Display results */}
             {teachers.length > 0 && (
                 <div className="mt-6">
                     <h2 className="text-xl font-semibold mb-2">Search Results:</h2>
                     <table className="w-full border-collapse border border-gray-300">
-                        <thead>
-                            <tr className="bg-gray-200">
-                                <th className="border border-gray-300 p-2">Name</th>
-                                <th className="border border-gray-300 p-2">Department</th>
-                                <th className="border border-gray-300 p-2">Lecture 1</th>
-                                <th className="border border-gray-300 p-2">Lecture 2</th>
-                                <th className="border border-gray-300 p-2">Lecture 3</th>
-                                <th className="border border-gray-300 p-2">Lecture 4</th>
-                                <th className="border border-gray-300 p-2">Lecture 5</th>
-                                <th className="border border-gray-300 p-2">Lecture 6</th>
-                                <th className="border border-gray-300 p-2">Lecture 7</th>
-                                <th className="border border-gray-300 p-2">Lecture 8</th>
-                                <th className="border border-gray-300 p-2">Actions</th>
+                    <thead>
+                        <tr className="bg-gray-200">
+                            <th className="border border-gray-300 p-2">Name</th>
+                            <th className="border border-gray-300 p-2">Department</th>
+                            <th className="border border-gray-300 p-2">Lecture 1</th>
+                            <th className="border border-gray-300 p-2">Lecture 2</th>
+                            <th className="border border-gray-300 p-2">Lecture 3</th>
+                            <th className="border border-gray-300 p-2">Lecture 4</th>
+                            <th className="border border-gray-300 p-2">Lecture 5</th>
+                            <th className="border border-gray-300 p-2">Lecture 6</th>
+                            <th className="border border-gray-300 p-2">Lecture 7</th>
+                            <th className="border border-gray-300 p-2">Lecture 8</th>
+                            <th className="border border-gray-300 p-2">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

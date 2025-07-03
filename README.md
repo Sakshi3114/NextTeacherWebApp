@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📚 Teacher Schedule Check Web Application
 
-## Getting Started
+A full-stack web application that helps **students**, **teachers**, and **admins** interact through a centralized schedule and notice management system. This app allows teachers to post notices, students to view schedules, and admins to manage teacher data efficiently.
 
-First, run the development server:
+## 🔗 Live Demo
+
+👉 [Check it out on Vercel](https://next-teacher-web-app.vercel.app/)
+
+---
+
+## ✨ Features
+
+### 👩‍🏫 Admin Panel
+- Add new teacher records
+- Edit existing records
+- Delete teacher entries
+- View individual teacher's details
+- View all records at once
+
+### 👨‍🎓 Student Panel
+- Search for a teacher by **name** or **department**
+- View their daily schedule and details
+
+### 🧑‍🏫 Teacher Panel
+- Register and log in
+- Add lecture notices
+- View all notices posted by themselves
+
+### 📢 Notices Panel
+- Left sidebar with list of teacher names (dynamic)
+- Right panel displays filtered notices posted by selected teacher with **timestamp**
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js, Tailwind CSS, React
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB Atlas
+- **Deployment**: Vercel
+
+---
+
+## 🧑‍💻 How to Use This Project
+
+### 1. Clone the Repository
 
 ```bash
+git clone https://github.com/Sakshi3114/NextTeacherWebApp.git
+cd teacher-schedule
+npm install
+MONGO_URI= your_mongodb_connection_string
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Test Credentials
+➤ Admin Login
+Use the following credentials to access the Admin Panel:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Role: admin
+Password: admin@123
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+⚠️ These are dummy credentials for demo purposes only.
 
-## Learn More
+➤ Teacher Panel
+You can register as a new teacher.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+After login, you can post lecture notices.

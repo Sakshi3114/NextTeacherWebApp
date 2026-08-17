@@ -37,7 +37,7 @@ Student accounts, a visual timetable builder, attendance tracking, leave/substit
 
 2. **Set up Postgres.** Create a free project at [neon.tech](https://neon.tech) (or point at any Postgres instance) and copy the connection string.
 
-3. **Configure environment variables.** Copy `.env.example` to `.env.local` and fill in:
+3. **Configure environment variables.** Copy `.env.example` to `.env` (not `.env.local` — the Prisma CLI and the seed script only auto-load `.env`, while Next.js itself reads both) and fill in:
    ```
    DATABASE_URL="postgresql://..."
    AUTH_SECRET="..."   # generate with: npx auth secret

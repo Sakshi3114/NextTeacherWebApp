@@ -64,36 +64,55 @@ model Teacher {
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
   periods      Period[]
+  attendanceSessions AttendanceSession[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
   @@map("teachers")
 }
 
-// Model defined now so the schema/relations are settled, but the student
-// sign-in flow itself is Phase 3 scope (admin-created rosters).
+// Student sign-in itself is still Phase 3 scope (admin-created rosters);
+// the row + enrollment relation is needed now so attendance has a roster.
 model Student {
-  id           String      @id @default(cuid())
-  userId       String      @unique
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rollNumber   String?     @unique
+  id           String       @id @default(cuid())
+  userId       String       @unique
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rollNumber   String?      @unique
   departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  department   Department?  @relation(fields: [departmentId], references: [id])
+  enrollments  Enrollment[]
+  attendanceRecords AttendanceRecord[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@map("students")
 }
 
 model Subject {
-  id           String      @id @default(cuid())
+  id           String       @id @default(cuid())
   name         String
-  code         String?     @unique
+  code         String?      @unique
   departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
+  department   Department?  @relation(fields: [departmentId], references: [id])
   periods      Period[]
+  enrollments  Enrollment[]
 
   @@map("subjects")
+}
+
+// Class roster: which students belong to which subject. Needed so
+// attendance-taking knows who to list, without conflating "department"
+// (many subjects) with "class" (one subject's actual roster).
+model Enrollment {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, subjectId])
+  @@map("enrollments")
 }
 
 // Replaces the old fixed lecture1..lecture8 columns: one row per timetable
@@ -108,10 +127,46 @@ model Period {
   teacher   Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   subjectId String
   subject   Subject   @relation(fields: [subjectId], references: [id])
+  attendanceSessions AttendanceSession[]
   createdAt DateTime  @default(now())
 
   @@index([teacherId, day])
   @@map("periods")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+// One session per period+date a teacher actually takes attendance for.
+model AttendanceSession {
+  id        String             @id @default(cuid())
+  periodId  String
+  period    Period             @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   Teacher            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  date      DateTime           @db.Date
+  records   AttendanceRecord[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@unique([periodId, date])
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  id        String            @id @default(cuid())
+  sessionId String
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentId String
+  student   Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status    AttendanceStatus
+
+  @@unique([sessionId, studentId])
+  @@map("attendance_records")
 }
 
 // Replaces the old embedded-subdocument TTL (which never actually worked on

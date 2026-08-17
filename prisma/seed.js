@@ -15,6 +15,7 @@ const prisma = new PrismaClient({ adapter, transactionOptions: { maxWait: 15000,
 const ADMIN_EMAIL = "admin@school.edu";
 const ADMIN_PASSWORD = "ChangeMe123!";
 const TEACHER_PASSWORD = "ChangeMe123!";
+const STUDENT_PASSWORD = "ChangeMe123!";
 
 async function main() {
   console.log("Seeding database...");
@@ -23,6 +24,9 @@ async function main() {
   // created pool pays for the TCP+TLS handshake to Neon, which can outlast
   // Prisma's default transaction-acquisition window on a cold connection.
   // FK order matters here (children before parents).
+  await prisma.attendanceRecord.deleteMany();
+  await prisma.attendanceSession.deleteMany();
+  await prisma.enrollment.deleteMany();
   await prisma.notice.deleteMany();
   await prisma.period.deleteMany();
   await prisma.subject.deleteMany();
@@ -101,6 +105,41 @@ async function main() {
     }
   }
 
+  // Students + enrollments: needed so the Phase 2 timetable/attendance
+  // features have a real roster to work with (student self-service login
+  // itself is still Phase 3 scope).
+  const studentDefs = [
+    { name: "Priya Nair", email: "priya.nair@school.edu", roll: "CS-001", department: cs, subjects: [subjects[0], subjects[1]] },
+    { name: "Marcus Lee", email: "marcus.lee@school.edu", roll: "CS-002", department: cs, subjects: [subjects[0], subjects[1]] },
+    { name: "Sofia Alvarez", email: "sofia.alvarez@school.edu", roll: "CS-003", department: cs, subjects: [subjects[0]] },
+    { name: "Ethan Brooks", email: "ethan.brooks@school.edu", roll: "MA-001", department: math, subjects: [subjects[2], subjects[3]] },
+    { name: "Wei Zhang", email: "wei.zhang@school.edu", roll: "MA-002", department: math, subjects: [subjects[2], subjects[3]] },
+    { name: "Ananya Iyer", email: "ananya.iyer@school.edu", roll: "MA-003", department: math, subjects: [subjects[3]] },
+    { name: "Jonas Miller", email: "jonas.miller@school.edu", roll: "EN-001", department: english, subjects: [subjects[4]] },
+    { name: "Grace Okafor", email: "grace.okafor@school.edu", roll: "EN-002", department: english, subjects: [subjects[4]] },
+  ];
+
+  const studentPasswordHash = await bcrypt.hash(STUDENT_PASSWORD, 10);
+  for (const def of studentDefs) {
+    const user = await prisma.user.create({
+      data: {
+        name: def.name,
+        email: def.email,
+        passwordHash: studentPasswordHash,
+        role: Role.STUDENT,
+        student: {
+          create: { rollNumber: def.roll, departmentId: def.department.id },
+        },
+      },
+      include: { student: true },
+    });
+    for (const subject of def.subjects) {
+      await prisma.enrollment.create({
+        data: { studentId: user.student.id, subjectId: subject.id },
+      });
+    }
+  }
+
   const firstTeacherUser = await prisma.user.findUnique({ where: { email: teacherDefs[0].email } });
   await prisma.notice.create({
     data: {
@@ -115,6 +154,7 @@ async function main() {
   console.log("---------------------------------------------");
   console.log(`Admin login:   ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
   console.log(`Teacher login: ${teacherDefs[0].email} / ${TEACHER_PASSWORD}`);
+  console.log(`Student login: ${studentDefs[0].email} / ${STUDENT_PASSWORD} (no dashboard yet — Phase 3)`);
   console.log("Change these passwords after first sign-in.");
   console.log("---------------------------------------------");
 }

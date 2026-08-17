@@ -1,0 +1,128 @@
+// Prisma schema — Phase 1 foundation.
+// Unifies the old two disconnected Mongo collections (Teacher directory record
+// vs TeacherNotice login+notices record) into one relational model: `User` is
+// the Auth.js identity, `Teacher`/`Student` are 1:1 profile extensions of it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  name         String
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  teacher       Teacher?
+  student       Student?
+  noticesPosted Notice[]
+
+  @@map("users")
+}
+
+model Department {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  teachers Teacher[]
+  students Student[]
+  subjects Subject[]
+
+  @@map("departments")
+}
+
+model Teacher {
+  id           String      @id @default(cuid())
+  userId       String      @unique
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone        String?
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  periods      Period[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("teachers")
+}
+
+// Model defined now so the schema/relations are settled, but the student
+// sign-in flow itself is Phase 3 scope (admin-created rosters).
+model Student {
+  id           String      @id @default(cuid())
+  userId       String      @unique
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rollNumber   String?     @unique
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("students")
+}
+
+model Subject {
+  id           String      @id @default(cuid())
+  name         String
+  code         String?     @unique
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  periods      Period[]
+
+  @@map("subjects")
+}
+
+// Replaces the old fixed lecture1..lecture8 columns: one row per timetable
+// slot, so a teacher can have any number of periods across any days.
+model Period {
+  id        String    @id @default(cuid())
+  day       DayOfWeek
+  startTime String // "HH:mm", e.g. "09:00"
+  endTime   String
+  room      String?
+  teacherId String
+  teacher   Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   Subject   @relation(fields: [subjectId], references: [id])
+  createdAt DateTime  @default(now())
+
+  @@index([teacherId, day])
+  @@map("periods")
+}
+
+// Replaces the old embedded-subdocument TTL (which never actually worked on
+// a subdocument array field). Expiry is enforced at the query layer instead.
+model Notice {
+  id        String    @id @default(cuid())
+  title     String
+  body      String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@map("notices")
+}

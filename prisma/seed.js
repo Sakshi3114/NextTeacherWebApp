@@ -1,10 +1,16 @@
 // Seed script — creates a demoable baseline instead of migrating the old
 // Mongo demo data (which was disposable and didn't fit the new schema shape
 // anyway). Re-run any time with `npm run db:reset`.
+require("dotenv/config");
 const { PrismaClient, Role, DayOfWeek } = require("@prisma/client");
+const { PrismaPg } = require("@prisma/adapter-pg");
 const bcrypt = require("bcrypt");
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+// Neon's first connection (TLS handshake) can outlast Prisma's default 2s
+// transaction-acquisition window, especially waking from idle — see
+// lib/prisma.js for the same setting used by the deployed app.
+const prisma = new PrismaClient({ adapter, transactionOptions: { maxWait: 15000, timeout: 15000 } });
 
 const ADMIN_EMAIL = "admin@school.edu";
 const ADMIN_PASSWORD = "ChangeMe123!";
@@ -13,15 +19,17 @@ const TEACHER_PASSWORD = "ChangeMe123!";
 async function main() {
   console.log("Seeding database...");
 
-  await prisma.$transaction([
-    prisma.notice.deleteMany(),
-    prisma.period.deleteMany(),
-    prisma.subject.deleteMany(),
-    prisma.teacher.deleteMany(),
-    prisma.student.deleteMany(),
-    prisma.department.deleteMany(),
-    prisma.user.deleteMany(),
-  ]);
+  // Sequential, not a batched $transaction: the first query on a freshly
+  // created pool pays for the TCP+TLS handshake to Neon, which can outlast
+  // Prisma's default transaction-acquisition window on a cold connection.
+  // FK order matters here (children before parents).
+  await prisma.notice.deleteMany();
+  await prisma.period.deleteMany();
+  await prisma.subject.deleteMany();
+  await prisma.teacher.deleteMany();
+  await prisma.student.deleteMany();
+  await prisma.department.deleteMany();
+  await prisma.user.deleteMany();
 
   const adminPasswordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
   await prisma.user.create({

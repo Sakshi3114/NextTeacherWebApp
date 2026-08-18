@@ -24,6 +24,9 @@ async function main() {
   // created pool pays for the TCP+TLS handshake to Neon, which can outlast
   // Prisma's default transaction-acquisition window on a cold connection.
   // FK order matters here (children before parents).
+  await prisma.notification.deleteMany();
+  await prisma.noticeRead.deleteMany();
+  await prisma.leaveRequest.deleteMany();
   await prisma.attendanceRecord.deleteMany();
   await prisma.attendanceSession.deleteMany();
   await prisma.enrollment.deleteMany();
@@ -150,11 +153,22 @@ async function main() {
     },
   });
 
+  // One sample pending leave request so /admin/leave isn't empty on first load.
+  await prisma.leaveRequest.create({
+    data: {
+      teacherId: teacherRecords[0].id,
+      startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      endDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
+      reason: "Attending a conference.",
+      substituteId: teacherRecords[1]?.id ?? null,
+    },
+  });
+
   console.log("Seed complete.");
   console.log("---------------------------------------------");
   console.log(`Admin login:   ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
   console.log(`Teacher login: ${teacherDefs[0].email} / ${TEACHER_PASSWORD}`);
-  console.log(`Student login: ${studentDefs[0].email} / ${STUDENT_PASSWORD} (no dashboard yet — Phase 3)`);
+  console.log(`Student login: ${studentDefs[0].email} / ${STUDENT_PASSWORD}`);
   console.log("Change these passwords after first sign-in.");
   console.log("---------------------------------------------");
 }

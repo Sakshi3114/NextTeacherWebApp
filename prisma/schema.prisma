@@ -42,6 +42,8 @@ model User {
   teacher       Teacher?
   student       Student?
   noticesPosted Notice[]
+  decidedLeaveRequests LeaveRequest[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -65,6 +67,8 @@ model Teacher {
   department   Department? @relation(fields: [departmentId], references: [id])
   periods      Period[]
   attendanceSessions AttendanceSession[]
+  leaveRequests      LeaveRequest[] @relation("LeaveRequester")
+  substituteFor      LeaveRequest[] @relation("LeaveSubstitute")
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -82,6 +86,7 @@ model Student {
   department   Department?  @relation(fields: [departmentId], references: [id])
   enrollments  Enrollment[]
   attendanceRecords AttendanceRecord[]
+  noticeReads  NoticeRead[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
@@ -172,14 +177,76 @@ model AttendanceRecord {
 // Replaces the old embedded-subdocument TTL (which never actually worked on
 // a subdocument array field). Expiry is enforced at the query layer instead.
 model Notice {
-  id        String    @id @default(cuid())
+  id        String       @id @default(cuid())
   title     String
   body      String
-  createdAt DateTime  @default(now())
+  createdAt DateTime     @default(now())
   expiresAt DateTime?
   authorId  String
-  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reads     NoticeRead[]
 
   @@index([createdAt])
   @@map("notices")
+}
+
+model NoticeRead {
+  id        String   @id @default(cuid())
+  noticeId  String
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  readAt    DateTime @default(now())
+
+  @@unique([noticeId, studentId])
+  @@map("notice_reads")
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Record-and-decide only — does not touch Period rows. Periods are
+// recurring weekly slots, not date-specific occurrences, so "auto-reassign
+// this class for the leave date range" isn't expressible without a much
+// bigger occurrence-based timetable remodel; out of scope for this phase.
+model LeaveRequest {
+  id           String      @id @default(cuid())
+  teacherId    String
+  teacher      Teacher     @relation("LeaveRequester", fields: [teacherId], references: [id], onDelete: Cascade)
+  startDate    DateTime    @db.Date
+  endDate      DateTime    @db.Date
+  reason       String
+  status       LeaveStatus @default(PENDING)
+  substituteId String?
+  substitute   Teacher?    @relation("LeaveSubstitute", fields: [substituteId], references: [id])
+  decidedById  String?
+  decidedBy    User?       @relation(fields: [decidedById], references: [id])
+  decidedAt    DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@map("leave_requests")
+}
+
+enum NotificationType {
+  NOTICE_POSTED
+  LEAVE_REQUESTED
+  LEAVE_APPROVED
+  LEAVE_REJECTED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
 }

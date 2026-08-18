@@ -10,6 +10,7 @@ const { auth } = NextAuth(authConfig);
 const roleRequirements = [
   { prefix: "/admin", roles: ["ADMIN"] },
   { prefix: "/teacher", roles: ["ADMIN", "TEACHER"] },
+  { prefix: "/student", roles: ["ADMIN", "STUDENT"] },
 ];
 
 export default auth((req) => {
@@ -32,5 +33,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/teacher/:path*"],
+  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*"],
 };

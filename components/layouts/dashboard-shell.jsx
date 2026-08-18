@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Building2, BookOpen, Megaphone, CalendarDays, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, Users, Building2, BookOpen, Megaphone, CalendarDays, ClipboardCheck, CalendarOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Nav config lives here (not passed down from the Server Component layout)
@@ -15,15 +15,22 @@ const NAV_BY_ROLE = {
     { href: "/admin/departments", label: "Departments", icon: Building2 },
     { href: "/admin/subjects", label: "Subjects", icon: BookOpen },
     { href: "/admin/timetable", label: "Timetable", icon: CalendarDays },
+    { href: "/admin/leave", label: "Leave requests", icon: CalendarOff },
   ],
   teacher: [
     { href: "/teacher", label: "My schedule", icon: LayoutDashboard },
     { href: "/teacher/attendance", label: "Attendance", icon: ClipboardCheck },
     { href: "/teacher/notices", label: "Notices", icon: Megaphone },
+    { href: "/teacher/leave", label: "Leave", icon: CalendarOff },
+  ],
+  student: [
+    { href: "/student", label: "My schedule", icon: LayoutDashboard },
+    { href: "/student/attendance", label: "Attendance", icon: ClipboardCheck },
+    { href: "/student/notices", label: "Notices", icon: Megaphone },
   ],
 };
 
-const ROLE_LABEL = { admin: "Admin", teacher: "Teacher" };
+const ROLE_LABEL = { admin: "Admin", teacher: "Teacher", student: "Student" };
 
 export function DashboardShell({ role, children }) {
   const pathname = usePathname();

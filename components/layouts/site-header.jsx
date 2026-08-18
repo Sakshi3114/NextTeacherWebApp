@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { NotificationBell } from "@/components/notification-bell";
 
 // Public links every visitor sees, plus role-specific links appended once a
 // session is known — replaces the old MainNavigation's 4 hardcoded, oddly
@@ -30,6 +31,7 @@ const publicLinks = [
 function roleLinks(role) {
   if (role === "ADMIN") return [{ href: "/admin", label: "Admin Dashboard" }];
   if (role === "TEACHER") return [{ href: "/teacher", label: "My Dashboard" }];
+  if (role === "STUDENT") return [{ href: "/student", label: "My Dashboard" }];
   return [];
 }
 
@@ -73,6 +75,8 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-2 md:flex">
           {status === "authenticated" ? (
+            <>
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 w-9 rounded-full p-0">
@@ -92,6 +96,7 @@ export function SiteHeader() {
                 <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/" })}>Sign out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <Button asChild size="sm">
               <Link href="/sign-in">Sign in</Link>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Building2, BookOpen, Megaphone, CalendarDays, ClipboardCheck, CalendarOff } from "lucide-react";
+import { LayoutDashboard, Users, Building2, BookOpen, Megaphone, CalendarDays, ClipboardCheck, CalendarOff, BarChart3, CalendarRange } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Nav config lives here (not passed down from the Server Component layout)
@@ -15,7 +15,9 @@ const NAV_BY_ROLE = {
     { href: "/admin/departments", label: "Departments", icon: Building2 },
     { href: "/admin/subjects", label: "Subjects", icon: BookOpen },
     { href: "/admin/timetable", label: "Timetable", icon: CalendarDays },
+    { href: "/admin/calendar", label: "Calendar", icon: CalendarRange },
     { href: "/admin/leave", label: "Leave requests", icon: CalendarOff },
+    { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   ],
   teacher: [
     { href: "/teacher", label: "My schedule", icon: LayoutDashboard },

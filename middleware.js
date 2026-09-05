@@ -11,6 +11,7 @@ const roleRequirements = [
   { prefix: "/admin", roles: ["ADMIN"] },
   { prefix: "/teacher", roles: ["ADMIN", "TEACHER"] },
   { prefix: "/student", roles: ["ADMIN", "STUDENT"] },
+  { prefix: "/profile", roles: ["ADMIN", "TEACHER", "STUDENT"] },
 ];
 
 export default auth((req) => {
@@ -33,5 +34,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*"],
+  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*", "/profile/:path*"],
 };

@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Download } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 
 export default async function AttendanceHistoryPage() {
@@ -21,9 +23,16 @@ export default async function AttendanceHistoryPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Attendance history</h1>
-        <p className="text-muted-foreground">Every session you've taken attendance for.</p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Attendance history</h1>
+          <p className="text-muted-foreground">Every session you've taken attendance for.</p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <a href="/api/export/attendance">
+            <Download className="mr-2 h-4 w-4" /> Export CSV
+          </a>
+        </Button>
       </div>
 
       {sessions.length === 0 ? (

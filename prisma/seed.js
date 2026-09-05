@@ -17,6 +17,45 @@ const ADMIN_PASSWORD = "ChangeMe123!";
 const TEACHER_PASSWORD = "ChangeMe123!";
 const STUDENT_PASSWORD = "ChangeMe123!";
 
+function daysAgo(n) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - n);
+  return d;
+}
+function daysFromNow(n) {
+  return daysAgo(-n);
+}
+
+const DAY_INDEX = { MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6 };
+
+// The most recent `count` real calendar dates that fall on the given
+// DayOfWeek, oldest first — used to seed attendance sessions on dates that
+// actually match a period's recurring weekday.
+function pastDatesForWeekday(dayEnum, count) {
+  const targetIndex = DAY_INDEX[dayEnum];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysSinceTarget = (today.getDay() - targetIndex + 7) % 7;
+  const dates = [];
+  for (let w = 0; w < count; w += 1) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - daysSinceTarget - w * 7);
+    dates.push(d);
+  }
+  return dates.reverse();
+}
+
+// Weighted so charts look like a real (imperfect) attendance record, not a
+// uniform 100%.
+function randomAttendanceStatus() {
+  const r = Math.random();
+  if (r < 0.82) return "PRESENT";
+  if (r < 0.92) return "ABSENT";
+  if (r < 0.97) return "LATE";
+  return "EXCUSED";
+}
+
 async function main() {
   console.log("Seeding database...");
 
@@ -39,7 +78,7 @@ async function main() {
   await prisma.user.deleteMany();
 
   const adminPasswordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
-  await prisma.user.create({
+  const adminUser = await prisma.user.create({
     data: {
       name: "Site Admin",
       email: ADMIN_EMAIL,
@@ -92,10 +131,11 @@ async function main() {
     { day: DayOfWeek.FRIDAY, startTime: "13:00", endTime: "14:00", room: "101" },
   ];
 
+  const createdPeriods = [];
   for (const teacher of teacherRecords) {
     for (let i = 0; i < teacher.subjects.length; i += 1) {
       const slot = slots[i % slots.length];
-      await prisma.period.create({
+      const period = await prisma.period.create({
         data: {
           day: slot.day,
           startTime: slot.startTime,
@@ -105,12 +145,11 @@ async function main() {
           subjectId: teacher.subjects[i].id,
         },
       });
+      createdPeriods.push(period);
     }
   }
 
-  // Students + enrollments: needed so the Phase 2 timetable/attendance
-  // features have a real roster to work with (student self-service login
-  // itself is still Phase 3 scope).
+  // Students + enrollments.
   const studentDefs = [
     { name: "Priya Nair", email: "priya.nair@school.edu", roll: "CS-001", department: cs, subjects: [subjects[0], subjects[1]] },
     { name: "Marcus Lee", email: "marcus.lee@school.edu", roll: "CS-002", department: cs, subjects: [subjects[0], subjects[1]] },
@@ -123,6 +162,8 @@ async function main() {
   ];
 
   const studentPasswordHash = await bcrypt.hash(STUDENT_PASSWORD, 10);
+  const studentRecords = [];
+  const enrollmentsBySubject = new Map();
   for (const def of studentDefs) {
     const user = await prisma.user.create({
       data: {
@@ -136,33 +177,98 @@ async function main() {
       },
       include: { student: true },
     });
+    studentRecords.push(user.student);
     for (const subject of def.subjects) {
       await prisma.enrollment.create({
         data: { studentId: user.student.id, subjectId: subject.id },
       });
+      const list = enrollmentsBySubject.get(subject.id) ?? [];
+      list.push(user.student.id);
+      enrollmentsBySubject.set(subject.id, list);
     }
   }
 
-  const firstTeacherUser = await prisma.user.findUnique({ where: { email: teacherDefs[0].email } });
-  await prisma.notice.create({
-    data: {
-      title: "Welcome back!",
-      body: "Classes resume Monday. Please check your schedule for any room changes.",
-      authorId: firstTeacherUser.id,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    },
-  });
+  // Attendance history: real sessions on real past dates matching each
+  // period's weekday, over the last month, with a realistic (not perfect)
+  // present/absent/late/excused mix — otherwise the analytics dashboard and
+  // calendar have nothing to show on first load.
+  for (const period of createdPeriods) {
+    const studentIds = enrollmentsBySubject.get(period.subjectId) ?? [];
+    if (studentIds.length === 0) continue;
+    const dates = pastDatesForWeekday(period.day, 4);
+    for (const date of dates) {
+      const session = await prisma.attendanceSession.create({
+        data: { periodId: period.id, teacherId: period.teacherId, date },
+      });
+      for (const studentId of studentIds) {
+        await prisma.attendanceRecord.create({
+          data: { sessionId: session.id, studentId, status: randomAttendanceStatus() },
+        });
+      }
+    }
+  }
 
-  // One sample pending leave request so /admin/leave isn't empty on first load.
-  await prisma.leaveRequest.create({
-    data: {
-      teacherId: teacherRecords[0].id,
-      startDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      endDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
-      reason: "Attending a conference.",
-      substituteId: teacherRecords[1]?.id ?? null,
-    },
-  });
+  // Notices spread over the last few weeks, with varied read receipts so
+  // the engagement table on /admin/analytics shows a real spread instead of
+  // one all-or-nothing row.
+  const noticeDefs = [
+    { title: "Welcome back!", body: "Classes resume Monday. Please check your schedule for any room changes.", daysAgo: 21, readFraction: 1 },
+    { title: "Midterm schedule posted", body: "Midterm exam windows are now posted for all departments. Review the timetable for your subjects.", daysAgo: 14, readFraction: 0.75 },
+    { title: "Library hours extended", body: "The library will stay open until 9pm on weekdays through the end of the term.", daysAgo: 10, readFraction: 0.375 },
+    { title: "Room change: CS201", daysAgo: 6, body: "Data Structures moves to Room 210 starting next week for the rest of the term.", readFraction: 0.625 },
+    { title: "Guest lecture Friday", body: "A guest lecture on distributed systems runs Friday afternoon — open to all Computer Science students.", daysAgo: 3, readFraction: 0.25 },
+    { title: "Holiday schedule reminder", body: "No classes next Monday. Regular schedule resumes Tuesday.", daysAgo: 1, readFraction: 0 },
+  ];
+
+  for (let i = 0; i < noticeDefs.length; i += 1) {
+    const def = noticeDefs[i];
+    const author = teacherRecords[i % teacherRecords.length];
+    const authorUser = await prisma.user.findUnique({ where: { id: author.userId } });
+    const createdAt = daysAgo(def.daysAgo);
+    const notice = await prisma.notice.create({
+      data: {
+        title: def.title,
+        body: def.body,
+        authorId: authorUser.id,
+        createdAt,
+        expiresAt: new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000),
+      },
+    });
+    const readCount = Math.round(studentRecords.length * def.readFraction);
+    for (let s = 0; s < readCount; s += 1) {
+      await prisma.noticeRead.create({
+        data: { noticeId: notice.id, studentId: studentRecords[s].id },
+      });
+    }
+  }
+
+  // Leave requests spread across the last few months with a mix of
+  // statuses, so /admin/leave, /teacher/leave, and the analytics "leave
+  // trends" chart all have real variety instead of one pending row.
+  const leaveDefs = [
+    { teacher: teacherRecords[0], start: daysAgo(62), end: daysAgo(60), reason: "Family emergency.", status: "APPROVED", substitute: teacherRecords[1] },
+    { teacher: teacherRecords[1], start: daysAgo(45), end: daysAgo(45), reason: "Medical appointment.", status: "APPROVED", substitute: null },
+    { teacher: teacherRecords[2], start: daysAgo(30), end: daysAgo(28), reason: "Personal travel.", status: "REJECTED", substitute: null },
+    { teacher: teacherRecords[0], start: daysAgo(20), end: daysAgo(20), reason: "Conference attendance.", status: "APPROVED", substitute: teacherRecords[2] },
+    { teacher: teacherRecords[2], start: daysAgo(5), end: daysAgo(4), reason: "Family event.", status: "PENDING", substitute: null },
+    { teacher: teacherRecords[1], start: daysFromNow(7), end: daysFromNow(9), reason: "Attending a conference.", status: "PENDING", substitute: teacherRecords[0] },
+  ];
+
+  for (const def of leaveDefs) {
+    const decided = def.status !== "PENDING";
+    await prisma.leaveRequest.create({
+      data: {
+        teacherId: def.teacher.id,
+        startDate: def.start,
+        endDate: def.end,
+        reason: def.reason,
+        status: def.status,
+        substituteId: def.substitute?.id ?? null,
+        decidedById: decided ? adminUser.id : null,
+        decidedAt: decided ? def.end : null,
+      },
+    });
+  }
 
   console.log("Seed complete.");
   console.log("---------------------------------------------");

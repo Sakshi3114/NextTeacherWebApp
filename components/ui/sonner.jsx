@@ -1,13 +1,14 @@
 "use client"
 
+import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
 
-// Dark-mode theme switching (next-themes) lands in a later phase — this
-// defaults to the system preference, which sonner already resolves itself.
 const Toaster = ({ ...props }) => {
+  const { theme = "system" } = useTheme()
+
   return (
     <Sonner
-      theme="system"
+      theme={theme}
       className="toaster group"
       toastOptions={{
         classNames: {

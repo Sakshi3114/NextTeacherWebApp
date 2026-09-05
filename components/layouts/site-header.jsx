@@ -7,7 +7,7 @@ import { GraduationCap, Menu } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { NotificationBell } from "@/components/notification-bell";
+import { ModeToggle } from "@/components/mode-toggle";
 
 // Public links every visitor sees, plus role-specific links appended once a
 // session is known — replaces the old MainNavigation's 4 hardcoded, oddly
@@ -74,6 +75,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <ModeToggle />
           {status === "authenticated" ? (
             <>
             <NotificationBell />
@@ -81,6 +83,7 @@ export function SiteHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 w-9 rounded-full p-0">
                   <Avatar className="h-9 w-9">
+                    {session.user?.image ? <AvatarImage src={session.user.image} alt={session.user?.name} /> : null}
                     <AvatarFallback>{initials(session.user?.name)}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -93,6 +96,9 @@ export function SiteHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/" })}>Sign out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -104,39 +110,47 @@ export function SiteHeader() {
           )}
         </div>
 
-        <Sheet>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" aria-label="Open menu">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right">
-            <SheetHeader>
-              <SheetTitle>Menu</SheetTitle>
-            </SheetHeader>
-            <nav className="mt-6 flex flex-col gap-1">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <Separator className="my-2" />
-              {status === "authenticated" ? (
-                <Button variant="outline" onClick={() => signOut({ callbackUrl: "/" })}>
-                  Sign out
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link href="/sign-in">Sign in</Link>
-                </Button>
-              )}
-            </nav>
-          </SheetContent>
-        </Sheet>
+        <div className="flex items-center gap-1 md:hidden">
+          <ModeToggle />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 flex flex-col gap-1">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <Separator className="my-2" />
+                {status === "authenticated" ? (
+                  <>
+                    <Link href="/profile" className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent">
+                      Profile
+                    </Link>
+                    <Button variant="outline" onClick={() => signOut({ callbackUrl: "/" })}>
+                      Sign out
+                    </Button>
+                  </>
+                ) : (
+                  <Button asChild>
+                    <Link href="/sign-in">Sign in</Link>
+                  </Button>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );

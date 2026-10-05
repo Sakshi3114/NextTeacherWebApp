@@ -12,6 +12,10 @@ const DAY_LABEL = {
   SATURDAY: "Saturday",
 };
 
+function formatDate(date) {
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);
+}
+
 export default async function TeacherDashboardPage() {
   const session = await auth();
 
@@ -29,8 +33,39 @@ export default async function TeacherDashboardPage() {
     );
   }
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const coveringFor = await prisma.substitution.findMany({
+    where: { substituteId: teacher.id, date: { gte: today } },
+    include: { period: { include: { subject: true } }, originalTeacher: { include: { user: true } } },
+    orderBy: { date: "asc" },
+  });
+
   return (
     <div>
+      {coveringFor.length > 0 ? (
+        <div className="mb-6">
+          <h2 className="mb-3 text-lg font-semibold tracking-tight">Covering for others</h2>
+          <div className="space-y-3">
+            {coveringFor.map((s) => (
+              <Card key={s.id}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">{formatDate(s.date)}</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between text-sm">
+                  <span className="font-medium">
+                    {s.period.subject.name} · for {s.originalTeacher.user.name}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {s.period.startTime}&ndash;{s.period.endTime}
+                    {s.period.room ? ` · Room ${s.period.room}` : ""}
+                  </span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <h1 className="mb-6 text-2xl font-bold tracking-tight">My schedule</h1>
       {teacher.periods.length === 0 ? (
         <EmptyState title="No periods assigned yet" description="An admin will set up your timetable." />

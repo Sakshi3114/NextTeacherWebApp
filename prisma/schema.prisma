@@ -44,6 +44,7 @@ model User {
   noticesPosted Notice[]
   decidedLeaveRequests LeaveRequest[]
   notifications Notification[]
+  assignedSubstitutions Substitution[]
 
   @@map("users")
 }
@@ -69,6 +70,8 @@ model Teacher {
   attendanceSessions AttendanceSession[]
   leaveRequests      LeaveRequest[] @relation("LeaveRequester")
   substituteFor      LeaveRequest[] @relation("LeaveSubstitute")
+  substitutionsAsOriginal Substitution[] @relation("SubstitutionOriginal")
+  substitutionsCovering   Substitution[] @relation("SubstitutionCovering")
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -133,6 +136,7 @@ model Period {
   subjectId String
   subject   Subject   @relation(fields: [subjectId], references: [id])
   attendanceSessions AttendanceSession[]
+  substitutions      Substitution[]
   createdAt DateTime  @default(now())
 
   @@index([teacherId, day])
@@ -226,6 +230,7 @@ model LeaveRequest {
   decidedBy    User?       @relation(fields: [decidedById], references: [id])
   decidedAt    DateTime?
   createdAt    DateTime    @default(now())
+  substitutions Substitution[]
 
   @@map("leave_requests")
 }
@@ -235,6 +240,31 @@ enum NotificationType {
   LEAVE_REQUESTED
   LEAVE_APPROVED
   LEAVE_REJECTED
+  SUBSTITUTE_ASSIGNED
+  SUBSTITUTE_CANCELLED
+}
+
+// One row per class occurrence (a specific Period on a specific date) that
+// needs covering — deliberately not reusing LeaveRequest.substituteId,
+// which is a single substitute for the whole leave range. A teacher on
+// leave several days can have a different substitute per class.
+model Substitution {
+  id                String        @id @default(cuid())
+  periodId          String
+  period            Period        @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  date              DateTime      @db.Date
+  originalTeacherId String
+  originalTeacher   Teacher       @relation("SubstitutionOriginal", fields: [originalTeacherId], references: [id], onDelete: Cascade)
+  substituteId      String
+  substitute        Teacher       @relation("SubstitutionCovering", fields: [substituteId], references: [id], onDelete: Cascade)
+  leaveRequestId    String?
+  leaveRequest      LeaveRequest? @relation(fields: [leaveRequestId], references: [id], onDelete: SetNull)
+  assignedById      String
+  assignedBy        User          @relation(fields: [assignedById], references: [id])
+  createdAt         DateTime      @default(now())
+
+  @@unique([periodId, date])
+  @@map("substitutions")
 }
 
 model Notification {

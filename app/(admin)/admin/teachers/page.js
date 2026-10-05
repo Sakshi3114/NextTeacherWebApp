@@ -5,16 +5,27 @@ import { Button } from "@/components/ui/button";
 import { TeachersTable } from "@/components/admin/teachers-table";
 
 export default async function AdminTeachersPage() {
-  const teachers = await prisma.teacher.findMany({
-    include: { user: true, department: true },
-    orderBy: { user: { name: "asc" } },
-  });
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [teachers, onLeaveToday] = await Promise.all([
+    prisma.teacher.findMany({
+      include: { user: true, department: true },
+      orderBy: { user: { name: "asc" } },
+    }),
+    prisma.leaveRequest.findMany({
+      where: { status: "APPROVED", startDate: { lte: today }, endDate: { gte: today } },
+      select: { teacherId: true },
+    }),
+  ]);
+  const onLeaveIds = new Set(onLeaveToday.map((r) => r.teacherId));
 
   const rows = teachers.map((t) => ({
     id: t.id,
     name: t.user.name,
     email: t.user.email,
     department: t.department?.name ?? null,
+    onLeaveToday: onLeaveIds.has(t.id),
   }));
 
   return (

@@ -24,6 +24,16 @@ const columns = [
     cell: ({ row }) => (row.original.department ? <Badge variant="secondary">{row.original.department}</Badge> : "—"),
   },
   {
+    accessorKey: "onLeaveToday",
+    header: "Status",
+    cell: ({ row }) =>
+      row.original.onLeaveToday ? (
+        <Badge variant="secondary">On leave today</Badge>
+      ) : (
+        <Badge variant="outline">Available</Badge>
+      ),
+  },
+  {
     id: "actions",
     header: "",
     cell: ({ row }) => (

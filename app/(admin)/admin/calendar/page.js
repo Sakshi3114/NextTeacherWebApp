@@ -2,10 +2,10 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DayLeaveDialog } from "@/components/admin/day-leave-dialog";
+import { DAY_INDEX_TO_ENUM, toDateInputValue } from "@/lib/schedule";
 
-const DAY_INDEX_TO_ENUM = ["", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function monthParam(date) {
@@ -43,15 +43,18 @@ export default async function AdminCalendarPage({ searchParams }) {
   const prevMonth = new Date(year, month - 1, 1);
   const nextMonth = new Date(year, month + 1, 1);
 
-  const [periods, approvedLeave] = await Promise.all([
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 0);
+
+  const [periods, approvedLeave, substitutions] = await Promise.all([
     prisma.period.findMany({ include: { subject: true, teacher: { include: { user: true } } } }),
     prisma.leaveRequest.findMany({
-      where: {
-        status: "APPROVED",
-        startDate: { lte: new Date(year, month + 1, 0) },
-        endDate: { gte: new Date(year, month, 1) },
-      },
+      where: { status: "APPROVED", startDate: { lte: monthEnd }, endDate: { gte: monthStart } },
       include: { teacher: { include: { user: true } } },
+    }),
+    prisma.substitution.findMany({
+      where: { date: { gte: monthStart, lte: monthEnd } },
+      include: { substitute: { include: { user: true } } },
     }),
   ]);
 
@@ -60,6 +63,16 @@ export default async function AdminCalendarPage({ searchParams }) {
     const list = periodsByDay.get(period.day) ?? [];
     list.push(period);
     periodsByDay.set(period.day, list.sort((a, b) => a.startTime.localeCompare(b.startTime)));
+  }
+
+  // Keyed by "periodId_YYYY-MM-DD" so a day cell can look up whether a
+  // given occurrence already has a substitute assigned.
+  const substitutionByOccurrence = new Map();
+  for (const s of substitutions) {
+    substitutionByOccurrence.set(`${s.periodId}_${toDateInputValue(s.date)}`, {
+      substitutionId: s.id,
+      name: s.substitute.user.name,
+    });
   }
 
   const cells = buildMonthGrid(year, month);
@@ -129,13 +142,25 @@ export default async function AdminCalendarPage({ searchParams }) {
                       <div className="px-1 text-[10px] text-muted-foreground">+{dayPeriods.length - 3} more</div>
                     ) : null}
                     {onLeave.length > 0 ? (
-                      <Badge
-                        variant="secondary"
-                        className="w-full justify-center px-1 py-0 text-[10px]"
-                        title={onLeave.map((r) => r.teacher.user.name).join(", ")}
-                      >
-                        {onLeave.length} on leave
-                      </Badge>
+                      <DayLeaveDialog
+                        dateLabel={new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date)}
+                        dateISO={toDateInputValue(date)}
+                        teachersOnLeave={onLeave.map((r) => {
+                          const teacherPeriods = dayPeriods.filter((p) => p.teacherId === r.teacherId);
+                          return {
+                            teacherId: r.teacherId,
+                            teacherName: r.teacher.user.name,
+                            leaveRequestId: r.id,
+                            periods: teacherPeriods.map((p) => ({
+                              periodId: p.id,
+                              subjectName: p.subject.name,
+                              startTime: p.startTime,
+                              endTime: p.endTime,
+                              current: substitutionByOccurrence.get(`${p.id}_${toDateInputValue(date)}`) ?? null,
+                            })),
+                          };
+                        })}
+                      />
                     ) : null}
                   </div>
                 </div>
